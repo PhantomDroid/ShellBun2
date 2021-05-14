@@ -1,7 +1,13 @@
 name: Bionic Slim SSH CI
 
 on:
+  push:
+    branches: [ main ]
+    paths: '.github/workflows/bionic.yml'
   workflow_dispatch:
+
+env:
+  PAT: ${{ secrets.GH_TOKEN }}
 
 jobs:
   ssh2runner:
@@ -9,28 +15,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@main
-
       - name: Set Git Configs & Secrets
-        run: |
-          git config --global user.email ${{ secrets.GitHubMail }}
-          git config --global user.name ${{ secrets.GitHubName }}
-          git config --global color.ui true
-          git config --global credential.helper store
-          echo "https://${{ secrets.GitHubName }}:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+        uses: rokibhasansagar/custom_workflows/git_config@main
       - name: SSH Keepalive
-        run: |
-          mkdir -p ~/.ssh
-          cat << EOF > ~/.ssh/config
-          Host *
-              ServerAliveInterval 60
-              StrictHostKeyChecking no
-          Host github.com
-              User git
-              Port 22
-              Hostname github.com
-              TCPKeepAlive yes
-              IdentitiesOnly yes
-          EOF
+        uses: rokibhasansagar/custom_workflows/ssh_keepalive@main
       - name: NGROK Session
         continue-on-error: true
         run: curl -sL https://gist.github.com/rokibhasansagar/077b66b16cd50e50e5ad9489084dc926/raw/ngrok2actions.sh | bash
@@ -54,4 +42,4 @@ jobs:
       - name: Self Looping
         continue-on-error: true
         run: |
-          curl -X POST --header "Authorization: token ${{ secrets.GH_TOKEN }}" https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/bionic.yml/dispatches -d '{"ref":"main"}'
+          curl -X POST --header "Authorization: token ${PAT}}" https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/bionic.yml/dispatches -d '{"ref":"main"}'
