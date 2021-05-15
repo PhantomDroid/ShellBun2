@@ -39,4 +39,6 @@ jobs:
       - name: Self Looping
         continue-on-error: true
         run: |
-          curl -X POST --header "Authorization: token ${PAT}" https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/bionic_raw.yml/dispatches -d '{"ref":"main"}'
+          if [[ -f /tmp/LOOP ]]; then
+            curl -X POST --header "Authorization: token ${PAT}" https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/bionic_raw.yml/dispatches -d '{"ref":"main"}'
+          fi
